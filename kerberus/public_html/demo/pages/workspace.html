@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html ng-app="demo">
+    <head>
+        <title>Kerberus</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="../../bootstrap/css/bootstrap.min.css" type="text/css" rel="stylesheet">
+        <link href="../../bootstrap/css/united.min.css" type="text/css" rel="stylesheet">
+    </head>
+    <body>
+        <div class="page-header">
+            <h1> &ensp; Kerberus.io <small>Workspace Page</small>
+            </h1>
+            <div class="panel-body">
+                <a class="btn btn-primary glyphicon glyphicon-log-out pull-right"
+                   href="/kerberus/index.html">&ensp;Sair</a>
+            </div>
+        </div>
+        <div class="panel-body">
+            <ng-view></ng-view>
+        </div>
+    </body>
+    <script src="../../jQuery/jquery-2.0.3.min.js" type="text/javascript"></script>
+    <script src="../../angular/angular.min.js" type="text/javascript"></script>
+    <script src="../../angular/angular-cookies.min.js" type="text/javascript"></script>
+    <script src="../../angular/angular-resource.min.js" type="text/javascript"></script>
+    <script src="../../angular/angular-route.min.js" type="text/javascript"></script>
+    <script src="../../bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
+    <script src="../../kerberus_module/kerberus.js" type="text/javascript"></script>
+    <script src="../myApp.js" type="text/javascript"></script>
+</html>

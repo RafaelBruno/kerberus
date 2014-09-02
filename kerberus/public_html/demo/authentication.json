@@ -3,8 +3,8 @@
         "login": "root",
         "password": "root",
         "permissions": [{
-                "module": "Modulo Cadastro",
-                "typo": "rw"
+                "module": "Home",
+                "type": "rw"
             }]
     }
 }

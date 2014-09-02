@@ -1,22 +1,21 @@
-var demo = angular.module('demo', ["kerberus-module"]);
+var demo = angular.module('demo', ["kerberus-module", "ngRoute", "ngResource"]);
 
+demo.config(function($locationProvider, $routeProvider) {
+    $routeProvider
+            .when('/home', {
+                templateUrl: 'home.html',
+                controller: 'homeCtrl',
+                resolve: {
+                    kerberusAuto: ["Kerberus", function(Kerberus) {
+                            Kerberus.module("Home");
+                        }]
+                }
+            })
+            .otherwise({redirectTo: '/home'});
+});
 
-demo.controller("demoCtrl", ["$scope", "$http", "Kerberus", function($scope, $http, Kerberus) {
-        console.log("DemoCtrl Kerberus.io");
-
-
-        $scope.logar = function() {
-            if ($scope.user == "root" && $scope.pass === "root") {
-                $http({method: 'GET', url: 'demo/authentication.json'}).
-                        success(function(data) {
-                            var user = new KerberusUser();
-                        }).
-                        error(function(data) {
-                        });
-            } else {
-                alert("Usuario ou Senha incorretos");
-            }
-        };
+demo.controller("homeCtrl", ["$scope", "$http", "Kerberus", function($scope, $http, Kerberus) {
+        console.log("Home Kerberus.io");
 
     }]);
 
