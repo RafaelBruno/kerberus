@@ -6,15 +6,35 @@ demo.config(function($locationProvider, $routeProvider) {
                 templateUrl: 'home.html',
                 controller: 'homeCtrl',
                 resolve: {
-                    kerberusAuto: ["Kerberus", function(Kerberus) {
-                            Kerberus.module("Home");
+                    init: ["$kerberus", function($kerberus) {
+                            $kerberus.module("Home")
                         }]
                 }
+            })
+              .when('/cadastros', {
+                templateUrl: 'cadastros.html',
+                controller: 'cadastrosCtrl',
+                resolve: {
+                    init: ["$kerberus", function($kerberus) {
+                            $kerberus.module("Cadastro");
+                        }]
+                }
+            })
+            .when('/notCtrl', {
+                templateUrl: "notController.html"
+            })
+             .when('/accessDenied', {
+                templateUrl: "AccessDenied.html"
             })
             .otherwise({redirectTo: '/home'});
 });
 
-demo.controller("homeCtrl", ["$scope", "$http", "Kerberus", function($scope, $http, Kerberus) {
+demo.controller("homeCtrl", ["$scope", "$http", "$kerberus", function($scope, $http, $kerberus) {
+        console.log("Home Kerberus.io");
+
+    }]);
+
+demo.controller("cadastrosCtrl", ["$scope", "$http", "$kerberus", function($scope, $http, $kerberus) {
         console.log("Home Kerberus.io");
 
     }]);

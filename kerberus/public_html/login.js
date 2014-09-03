@@ -1,7 +1,7 @@
 var demo = angular.module('login', ["kerberus-module","ngRoute","ngResource"]);
 
 
-demo.controller("demoCtrl", ["$scope", "$http", "Kerberus", function($scope, $http, Kerberus) {
+demo.controller("demoCtrl", ["$scope", "$http", "$kerberus", function($scope, $http, $kerberus) {
         console.log("DemoCtrl Kerberus.io");
         
 
@@ -14,7 +14,7 @@ demo.controller("demoCtrl", ["$scope", "$http", "Kerberus", function($scope, $ht
                                     .setUser(data.user.login)
                                     .setPass(data.user.password)
                                     .build();
-                            Kerberus.setKerberusUser(user).redirect("demo/pages/workspace.html");
+                            $kerberus.setKerberusUser(user).redirect("demo/pages/workspace.html");
                         }).
                         error(function(data) {
                         });

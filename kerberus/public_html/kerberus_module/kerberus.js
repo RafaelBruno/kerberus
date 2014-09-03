@@ -1,12 +1,31 @@
 var kerberus = angular.module("kerberus-module", ['ngCookies', 'ngResource']);
 
-kerberus.factory('Kerberus', ['$resource', '$cookieStore',
-    function($resource, $cookieStore) {
+kerberus.run(['$kerberus',function($kerberus) {
+    $kerberus.init(function(){
+        console.log("aqui");
+    });
+}]);
+
+kerberus.factory('$kerberus', ['$resource', '$cookieStore', "$http",
+    function($resource, $cookieStore, $http) {
+
+        $http({method: 'GET', url: '/kerberus/kerberus_module/config.json'}).
+                then(function(data) {
+                    $cookieStore.put("kerberusConfig", data);
+                });
 
         return{
             /*Validate Module*/
             module: function(module) {
-                console.log("teste")
+                //this.init();
+                if (!this.validateModule(module)) {
+                    this.redirect(this.getConfig().accessDenied);
+                }
+            },
+            access: function() {
+                return this.validateModule(module);
+            },
+            validateModule: function(module) {
                 var isPermission = false;
                 var thisPermission = {};
                 var kerberusUser = this.getKerberusUser();
@@ -20,9 +39,11 @@ kerberus.factory('Kerberus', ['$resource', '$cookieStore',
 
                 if (isPermission) {
                     this.setSessionValue("permission", thisPermission);
+
                 } else {
-                    console.log("Não pode acessar")
+                    //console.log("Não pode acessar")
                 }
+                return isPermission;
             },
             validateTypeAccess: function() {
                 this.deleteThisCookie("permission");
@@ -48,6 +69,11 @@ kerberus.factory('Kerberus', ['$resource', '$cookieStore',
                 $cookieStore.put(name, value);
                 return this;
             },
+            setUser: function(userName) {
+                this.deleteThisCookie(userName);
+                $cookieStore.put("user", userName);
+                return this;
+            },
             setUserNameSession: function(userName) {
                 this.deleteThisCookie(userName);
                 $cookieStore.put("userName", userName);
@@ -68,11 +94,8 @@ kerberus.factory('Kerberus', ['$resource', '$cookieStore',
                 $cookieStore.put("kerberusUser", user);
                 return this;
             },
-            getAllPermissions: function() {
-                return [{
-                        "module": "Modulo Cadastro",
-                        "type": "rw"
-                    }];
+            getConfig: function() {
+                return $cookieStore.get("kerberusConfig").data;
             },
             getKerberusUser: function() {
                 return $cookieStore.get('kerberusUser');
@@ -81,7 +104,11 @@ kerberus.factory('Kerberus', ['$resource', '$cookieStore',
                 return $cookieStore.get(value);
             },
             deletarCookies: function() {
-
+                deleteThisCookie("userName");
+                deleteThisCookie("userLogin");
+                deleteThisCookie("userPass");
+                deleteThisCookie("kerberusUser");
+                deleteThisCookie("user");
             },
             deleteThisCookie: function(c_name) {
                 document.cookie = encodeURIComponent(c_name) + "=deleted; expires=" + new Date(0).toUTCString();
@@ -89,16 +116,20 @@ kerberus.factory('Kerberus', ['$resource', '$cookieStore',
             redirect: function(url) {
                 window.location.replace(url);
             },
-            start: function() {
-                var kerberuStart = new KerberusStart();
+            /*INIT*/
+            init: function(/**/) {
+                var args = arguments;
+                console.log(args);
+                for (var i = 0; i < args.length; i++) {
+                    args[i]();
+                }
             }
-        };
-
+        }
     }
 ]);
 
 
-kerberus.directive('readWrite', function(Kerberus) {
+kerberus.directive('readWrite', function($kerberus) {
     return {
         scope: true,
         restrict: 'E',
@@ -108,15 +139,15 @@ kerberus.directive('readWrite', function(Kerberus) {
             transclude(scope.$parent, function(clone, scope) {
                 $(e).append(clone);
             });
-            if(Kerberus.validateTypeAccess() !== "rw"){
+            if ($kerberus.validateTypeAccess() !== "rw") {
                 $(e).remove();
             }
-            Kerberus.deleteThisCookie("permission");
+            $kerberus.deleteThisCookie("permission");
         },
         template: "<div class='kerberusRW'></div>"
     };
 });
-kerberus.directive('readOnly', function(Kerberus) {
+kerberus.directive('readOnly', function($kerberus) {
     return {
         scope: true,
         restrict: 'E',
@@ -126,15 +157,15 @@ kerberus.directive('readOnly', function(Kerberus) {
             transclude(scope.$parent, function(clone, scope) {
                 $(e).append(clone);
             });
-             if(Kerberus.validateTypeAccess() !== "ro"){
+            if ($kerberus.validateTypeAccess() !== "ro") {
                 $(e).remove();
             }
-            Kerberus.deleteThisCookie("permission");
+            $kerberus.deleteThisCookie("permission");
         },
         template: "<div class='kerberusRO'></div>"
     };
 });
-kerberus.directive('admin', function(Kerberus) {
+kerberus.directive('admin', function($kerberus) {
     return {
         scope: true,
         restrict: 'E',
@@ -144,12 +175,55 @@ kerberus.directive('admin', function(Kerberus) {
             transclude(scope.$parent, function(clone, scope) {
                 $(e).append(clone);
             });
-             if(Kerberus.validateTypeAccess() !== "ad"){
+            if ($kerberus.validateTypeAccess() !== "ad") {
                 $(e).remove();
             }
-            Kerberus.deleteThisCookie("permission");
+            $kerberus.deleteThisCookie("permission");
         },
         template: "<div class='kerberusAD'></div>"
+    };
+});
+
+kerberus.directive('developer', function($kerberus) {
+    return {
+        scope: true,
+        restrict: 'E',
+        replace: true,
+        transclude: true,
+        link: function(scope, e, a, ctrl, transclude) {
+            transclude(scope.$parent, function(clone, scope) {
+                $(e).append(clone);
+            });
+            if ($kerberus.validateTypeAccess() !== "dev") {
+                $(e).remove();
+            }
+            $kerberus.deleteThisCookie("permission");
+        },
+        template: "<div class='kerberusAD'></div>"
+    };
+});
+
+/*Module Directive*/
+
+kerberus.directive('accessModule', function($kerberus) {
+    return {
+        scope: {
+            module: '@'
+        },
+        restrict: 'E',
+        replace: true,
+        transclude: true,
+        link: function(scope, e, a, ctrl, transclude) {
+            transclude(scope.$parent, function(clone, scope) {
+                $(e).append(clone);
+            });
+            if (!$kerberus.validateModule(a.module)) {
+                $(e).remove();
+            }
+            $kerberus.deleteThisCookie("permission");
+
+        },
+        template: "<div class='kerberusModule'></div>"
     };
 });
 
@@ -185,26 +259,3 @@ function UserBuild(user, pass, permissions) {
     this.permissions = permissions;
 
 }
-
-function KerberusStart() {
-    this.beforeLogin = function(callbackfunction) {
-        callbackfunction();
-        return this;
-    };
-    this.login = function(callbackfunction) {
-        callbackfunction();
-        return this;
-    };
-    this.afterLogin = function(callbackfunction) {
-        callbackfunction();
-        return this;
-    };
-    this.start = function() {
-    }
-}
-
-
-
-
-
-

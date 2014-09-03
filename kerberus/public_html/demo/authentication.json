@@ -4,6 +4,10 @@
         "password": "root",
         "permissions": [{
                 "module": "Home",
+                "type": "ro"
+            },
+            {
+                "module": "Cadastro",
                 "type": "rw"
             }]
     }
