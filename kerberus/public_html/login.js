@@ -1,11 +1,10 @@
-var demo = angular.module('login', ["kerberus-module","ngRoute","ngResource"]);
+var demo = angular.module('login', ["kerberus-module", "ngRoute", "ngResource"]);
 
 
 demo.controller("demoCtrl", ["$scope", "$http", "$kerberus", function($scope, $http, $kerberus) {
         console.log("DemoCtrl Kerberus.io");
+        $kerberus.clear();
         
-
-
         $scope.logar = function() {
             if ($scope.user == "root" && $scope.pass === "root") {
                 $http({method: 'GET', url: 'demo/authentication.json'}).

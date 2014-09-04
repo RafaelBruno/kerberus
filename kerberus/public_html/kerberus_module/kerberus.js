@@ -1,23 +1,36 @@
 var kerberus = angular.module("kerberus-module", ['ngCookies', 'ngResource']);
 
-kerberus.run(['$kerberus',function($kerberus) {
-    $kerberus.init(function(){
-        console.log("aqui");
-    });
-}]);
+kerberus.service('kerberusService', function() {
+    this.funcList = [];
+});
 
-kerberus.factory('$kerberus', ['$resource', '$cookieStore', "$http",
-    function($resource, $cookieStore, $http) {
+kerberus.provider("ngKerberus", function() {
+    var funcList;
+    return{
+        onLoad: function() {
+            var args = arguments;
+            funcList = args;
+        },
+        $get: function() {
+            return {
+                func: funcList
+            };
+        }
+    };
+});
+
+kerberus.factory('$kerberus', ['$resource', '$cookieStore', "$http", "kerberusService", "ngKerberus",
+    function($resource, $cookieStore, $http, kerberusService, ngKerberus) {
 
         $http({method: 'GET', url: '/kerberus/kerberus_module/config.json'}).
                 then(function(data) {
                     $cookieStore.put("kerberusConfig", data);
                 });
+                
 
         return{
             /*Validate Module*/
             module: function(module) {
-                //this.init();
                 if (!this.validateModule(module)) {
                     this.redirect(this.getConfig().accessDenied);
                 }
@@ -26,6 +39,7 @@ kerberus.factory('$kerberus', ['$resource', '$cookieStore', "$http",
                 return this.validateModule(module);
             },
             validateModule: function(module) {
+                this.init(kerberusService.funcList);
                 var isPermission = false;
                 var thisPermission = {};
                 var kerberusUser = this.getKerberusUser();
@@ -38,6 +52,7 @@ kerberus.factory('$kerberus', ['$resource', '$cookieStore', "$http",
                 }
 
                 if (isPermission) {
+                    this.deleteThisCookie("permission");
                     this.setSessionValue("permission", thisPermission);
 
                 } else {
@@ -46,7 +61,7 @@ kerberus.factory('$kerberus', ['$resource', '$cookieStore', "$http",
                 return isPermission;
             },
             validateTypeAccess: function() {
-                this.deleteThisCookie("permission");
+                this.init(this.getSessionValue("onLoad"));
                 var userKerberus = this.getSessionValue("permission");
                 if (userKerberus.type === "rw") {
                     return "rw";
@@ -104,11 +119,11 @@ kerberus.factory('$kerberus', ['$resource', '$cookieStore', "$http",
                 return $cookieStore.get(value);
             },
             deletarCookies: function() {
-                deleteThisCookie("userName");
-                deleteThisCookie("userLogin");
-                deleteThisCookie("userPass");
-                deleteThisCookie("kerberusUser");
-                deleteThisCookie("user");
+                this.deleteThisCookie("userName");
+                this.deleteThisCookie("userLogin");
+                this.deleteThisCookie("userPass");
+                this.deleteThisCookie("kerberusUser");
+                this.deleteThisCookie("user");
             },
             deleteThisCookie: function(c_name) {
                 document.cookie = encodeURIComponent(c_name) + "=deleted; expires=" + new Date(0).toUTCString();
@@ -117,14 +132,29 @@ kerberus.factory('$kerberus', ['$resource', '$cookieStore', "$http",
                 window.location.replace(url);
             },
             /*INIT*/
-            init: function(/**/) {
-                var args = arguments;
-                console.log(args);
-                for (var i = 0; i < args.length; i++) {
-                    args[i]();
+            init: function(args) {
+                if (typeof args[0] !== "undefined") {
+                    for (var i = 0; i < args.length; i++) {
+                        if (typeof args[i] === "function") {
+                            args[i]();
+                        }
+                    }
                 }
+            },
+            onLoad: function(/**/) {
+                var args = arguments;
+                kerberusService.funcList = args;
+            },
+            valid: function(){
+                return typeof this.getKerberusUser() !== "undefined";
+            },
+            invalid: function(){
+                return typeof this.getKerberusUser() === "undefined";
+            },
+            clear: function() {
+                this.deletarCookies();
             }
-        }
+        };
     }
 ]);
 
