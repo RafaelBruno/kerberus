@@ -4,11 +4,11 @@
         "password": "root",
         "permissions": [{
                 "module": "Home",
-                "type": "ro"
+                "type": ["ro","imp"]
             },
             {
                 "module": "Cadastro",
-                "type": "rw"
+                "type": ["rw"]
             }]
     }
 }
