@@ -1,3 +1,4 @@
 {
-    "accessDenied": "#/accessDenied"
+    "accessDenied": "#/accessDenied",
+    "notAccess": "/kerberus/index.html"
 }

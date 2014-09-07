@@ -3,8 +3,10 @@ var demo = angular.module('demo', ["kerberus-module", "ngRoute", "ngResource"]);
 demo.run(["$kerberus", function($kerberus) {
         $kerberus.onLoad(function() {
             if($kerberus.invalid()){
-                $kerberus.redirect("/kerberus/index.html");
+                //$kerberus.redirect("/kerberus/index.html");
             }
+        },function(){
+            console.log("verificar isso");
         });
     }]);
 
@@ -49,6 +51,7 @@ demo.config(function($locationProvider, $routeProvider) {
 
 demo.controller("homeCtrl", ["$scope", "$http", "$kerberus", function($scope, $http, $kerberus) {
         console.log("Home Kerberus.io");
+        $scope.myName = $kerberus.getSessionValue("myName");
 
     }]);
 

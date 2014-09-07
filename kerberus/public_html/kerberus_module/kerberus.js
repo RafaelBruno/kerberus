@@ -7,7 +7,7 @@ kerberus.service('kerberusService', function() {
 kerberus.provider("ngKerberus", function() {
     var funcList;
     return{
-        onLoad: function() {
+        config: function() {
             var args = arguments;
             funcList = args;
         },
@@ -27,7 +27,6 @@ kerberus.factory('$kerberus', ['$resource', '$cookieStore', "$http", "kerberusSe
                     $cookieStore.put("kerberusConfig", data);
                 });
 
-
         return{
             /*Validate Module*/
             module: function(module) {
@@ -43,73 +42,85 @@ kerberus.factory('$kerberus', ['$resource', '$cookieStore', "$http", "kerberusSe
                 var isPermission = false;
                 var thisPermission = {};
                 var kerberusUser = this.getKerberusUser();
-                var userPermissions = kerberusUser.permissions;
-                for (var i = 0; i < userPermissions.length; i++) {
-                    if (userPermissions[i].module === module) {
-                        isPermission = true;
-                        thisPermission = userPermissions[i];
+                if (this.isValid(kerberusUser)) {
+                    var userPermissions = kerberusUser.permissions;
+                    for (var i = 0; i < userPermissions.length; i++) {
+                        if (userPermissions[i].module === module) {
+                            isPermission = true;
+                            thisPermission = userPermissions[i];
+                        }
                     }
-                }
 
-                if (isPermission) {
-                    this.deleteThisCookie("permission");
-                    this.setSessionValue("permission", thisPermission);
+                    if (isPermission) {
+                        this.deleteThisCookie("permission");
+                        $cookieStore.put("permission", thisPermission);
 
+                    } else {
+                        //console.log("Não pode acessar")
+                    }
                 } else {
-                    //console.log("Não pode acessar")
+                    this.redirect(this.getConfig().notAccess);
                 }
+
                 return isPermission;
             },
             validateTypeAccess: function(type) {
                 this.init(this.getSessionValue("onLoad"));
                 var userKerberus = this.getSessionValue("permission");
-                if (userKerberus.type instanceof Array) {
-                    var valid = false;
-                    for (var i = 0; i < userKerberus.type.length; i++) {
-                        if (userKerberus.type[i] === type) {
-                            valid = true;
+                if (this.isValid(userKerberus)) {
+                    if (userKerberus.type instanceof Array) {
+                        var valid = false;
+                        for (var i = 0; i < userKerberus.type.length; i++) {
+                            if (userKerberus.type[i] === type) {
+                                valid = true;
+                            }
                         }
+                        return valid;
+                    } else {
+                        return "invalid: Object is not a Array";
+                        console.log("invalid: Object is not a Array");
                     }
-                    return valid;
                 } else {
-                    return "invalid: Object is not a Array";
-                    console.log("invalid: Object is not a Array");
+                    this.redirect(this.getConfig().notAccess);
                 }
-            },
-            /*ON LOGION*/
-            setSessionListValue: function(list) {
-                for (var i = 0; i < list.length; i++) {
-                }
-                return this;
             },
             setSessionValue: function(name, value) {
                 this.deleteThisCookie(name);
+                var listCookies = $cookieStore.get('listCookies');
+                if (typeof listCookies !== 'undefined') {
+                    listCookies.push(name);
+                    $cookieStore.put('listCookies', listCookies);
+                } else {
+                    var newList = [];
+                    newList.push(name);
+                    $cookieStore.put('listCookies', newList);
+                }
                 $cookieStore.put(name, value);
                 return this;
             },
             setUser: function(userName) {
                 this.deleteThisCookie(userName);
-                $cookieStore.put("user", userName);
+                this.setSessionValue("user", userName);
                 return this;
             },
             setUserNameSession: function(userName) {
                 this.deleteThisCookie(userName);
-                $cookieStore.put("userName", userName);
+                this.setSessionValue("userName", userName);
                 return this;
             },
             setUserUserLogin: function(userLogin) {
                 this.deleteThisCookie(userLogin);
-                $cookieStore.put("userLogin", userLogin);
+                this.setSessionValue("userLogin", userLogin);
                 return this;
             },
             setUserPassLogin: function(passLogin) {
                 this.deleteThisCookie(passLogin);
-                $cookieStore.put("userPass", passLogin);
+                this.setSessionValue("userPass", passLogin);
                 return this;
             },
             setKerberusUser: function(user) {
                 this.deleteThisCookie(user);
-                $cookieStore.put("kerberusUser", user);
+                this.setSessionValue("kerberusUser", user);
                 return this;
             },
             getConfig: function() {
@@ -121,12 +132,14 @@ kerberus.factory('$kerberus', ['$resource', '$cookieStore', "$http", "kerberusSe
             getSessionValue: function(value) {
                 return $cookieStore.get(value);
             },
-            deletarCookies: function() {
-                this.deleteThisCookie("userName");
-                this.deleteThisCookie("userLogin");
-                this.deleteThisCookie("userPass");
-                this.deleteThisCookie("kerberusUser");
-                this.deleteThisCookie("user");
+            deletarAllCookies: function() {
+                var listCookies = $cookieStore.get('listCookies');
+                if (this.isValid(listCookies)) {
+                    for (var i = 0; i < listCookies.length; i++) {
+                        $cookieStore.remove(listCookies[i]);
+                    }
+                }
+                $cookieStore.put('listCookies', []);
             },
             deleteThisCookie: function(c_name) {
                 document.cookie = encodeURIComponent(c_name) + "=deleted; expires=" + new Date(0).toUTCString();
@@ -154,8 +167,14 @@ kerberus.factory('$kerberus', ['$resource', '$cookieStore', "$http", "kerberusSe
             invalid: function() {
                 return typeof this.getKerberusUser() === "undefined";
             },
+            isValid: function(value) {
+                return typeof value !== "undefined";
+            },
+            isInvalid: function(value) {
+                return typeof value === "undefined";
+            },
             clear: function() {
-                this.deletarCookies();
+                this.deletarAllCookies();
             }
         };
     }
@@ -165,7 +184,7 @@ kerberus.factory('$kerberus', ['$resource', '$cookieStore', "$http", "kerberusSe
 kerberus.directive('readWrite', function($kerberus) {
     return {
         scope: true,
-        restrict: 'E',
+        restrict: 'EA',
         replace: true,
         transclude: true,
         link: function(scope, e, a, ctrl, transclude) {
@@ -176,14 +195,13 @@ kerberus.directive('readWrite', function($kerberus) {
                 $(e).remove();
             }
             $kerberus.deleteThisCookie("permission");
-        },
-        template: "<div class='kerberusRW'></div>"
+        }
     };
 });
 kerberus.directive('readOnly', function($kerberus) {
     return {
         scope: true,
-        restrict: 'E',
+        restrict: 'EA',
         replace: true,
         transclude: true,
         link: function(scope, e, a, ctrl, transclude) {
@@ -194,14 +212,13 @@ kerberus.directive('readOnly', function($kerberus) {
                 $(e).remove();
             }
             $kerberus.deleteThisCookie("permission");
-        },
-        template: "<div class='kerberusRO'></div>"
+        }
     };
 });
 kerberus.directive('admin', function($kerberus) {
     return {
         scope: true,
-        restrict: 'E',
+        restrict: 'EA',
         replace: true,
         transclude: true,
         link: function(scope, e, a, ctrl, transclude) {
@@ -212,15 +229,14 @@ kerberus.directive('admin', function($kerberus) {
                 $(e).remove();
             }
             $kerberus.deleteThisCookie("permission");
-        },
-        template: "<div class='kerberusAD'></div>"
+        }
     };
 });
 
 kerberus.directive('developer', function($kerberus) {
     return {
         scope: true,
-        restrict: 'E',
+        restrict: 'EA',
         replace: true,
         transclude: true,
         link: function(scope, e, a, ctrl, transclude) {
@@ -231,8 +247,7 @@ kerberus.directive('developer', function($kerberus) {
                 $(e).remove();
             }
             $kerberus.deleteThisCookie("permission");
-        },
-        template: "<div class='kerberusAD'></div>"
+        }
     };
 });
 
@@ -242,7 +257,7 @@ kerberus.directive('accessType', function($kerberus) {
         scope: {
             access: '@'
         },
-        restrict: 'E',
+        restrict: 'EA',
         replace: true,
         transclude: true,
         link: function(scope, e, a, ctrl, transclude) {
@@ -253,8 +268,7 @@ kerberus.directive('accessType', function($kerberus) {
                 $(e).remove();
             }
             $kerberus.deleteThisCookie("permission");
-        },
-        template: "<div class='kerberusAD'></div>"
+        }
     };
 });
 
@@ -266,7 +280,7 @@ kerberus.directive('accessModule', function($kerberus) {
         scope: {
             module: '@'
         },
-        restrict: 'E',
+        restrict: 'EA',
         replace: true,
         transclude: true,
         link: function(scope, e, a, ctrl, transclude) {
@@ -278,8 +292,7 @@ kerberus.directive('accessModule', function($kerberus) {
             }
             $kerberus.deleteThisCookie("permission");
 
-        },
-        template: "<div class='kerberusModule'></div>"
+        }
     };
 });
 

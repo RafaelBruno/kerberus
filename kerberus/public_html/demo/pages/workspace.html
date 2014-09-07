@@ -9,23 +9,36 @@
         <link rel="shortcut icon" href="/kerberus/favicon.png" type="image/x-icon" />
     </head>
     <body>
-        <div class="page-header">
-            <h1> &ensp; Kerberus.io <small>Workspace Page</small>
-            </h1>
-            <div class="panel-body">
-                <a class="btn btn-primary glyphicon glyphicon-log-out pull-right"
-                   href="/kerberus/index.html">&ensp;Sair</a>
-                <a class="btn btn-primary"
-                   href="#/home">Home</a>
-                <a class="btn btn-primary"
-                   href="#/notCtrl">Not Controller</a>
-                <a class="btn btn-primary"
-                   href="#/cadastros">Cadastros</a>
-                <a class="btn btn-primary"
-                   href="#/graficos">graficos</a>
-            </div>
-        </div>
+        <nav class="navbar navbar-default" role="navigation">
+            <div class="container-fluid">
+                <!-- Brand and toggle get grouped for better mobile display -->
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="#">Kerberus.io</a>
+                </div>
+
+                <!-- Collect the nav links, forms, and other content for toggling -->
+                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                    <ul class="nav navbar-nav">
+                        <li><a class="btn btn-primary"
+                               href="#/home">Home</a></li>
+                        <li> <a class="btn btn-primary"
+                                href="#/notCtrl">Not Controller</a></li>
+                        <li access-module module="Graficos"><a class="btn btn-primary"
+                                                               href="#/graficos">graficos</a></li>
+                        <li> <a class="btn btn-primary"
+                                href="#/cadastros">Cadastros</a></li>
+
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right">
+                        <l1><a class="btn btn-primary glyphicon glyphicon-log-out"
+                               href="/kerberus/index.html">&ensp;Sair</a></l1>
+                    </ul>
+                </div><!-- /.navbar-collapse -->
+            </div><!-- /.container-fluid -->
+        </nav>
         <div class="panel-body">
+            <h2>Kerberus.io</h2>
+            <br/>
             <ng-view></ng-view>
         </div>
     </body>
